@@ -116,6 +116,21 @@ exports.create = async function(model, object){
 }
 
 exports.assign = async function(model, object){
+    let values = ""
+    let virg = ""
 
+    for(var x in model.fields){
+        if (model.fields[x].type == "string"){
+            values += virg + model.fields[x].name + " = '" + object[model.fields[x].name] + "'"
+        }else{
+            values += virg + model.fields[x].name + " = " + object[model.fields[x].name]
+        }
+        virg = ","
+    }
+    try {
+        await pool.request().query(`update ${model.table} set ${values} where id = ${object["id"]}`)
+    } catch (err) {
+        console.log(err)
+    }
 }
 
