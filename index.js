@@ -19,7 +19,7 @@ exports.connect = async function(typeDatabase, config) {
         await pool.connect()
         console.log("connected")
     } catch (error) {
-        
+        return error
     }
 }
 
