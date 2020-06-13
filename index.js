@@ -17,7 +17,7 @@ exports.connect = async function(typeDatabase, config) {
     try {
         pool = new mssql.ConnectionPool(config)
         await pool.connect()
-        console.log("connected")
+        console.log("db connected")
     } catch (error) {
         return error
     }
@@ -26,6 +26,7 @@ exports.connect = async function(typeDatabase, config) {
 exports.close = async function(){
     try {
         await pool.close()
+        console.log("db disconnected")
     } catch (error) {
         
     }
@@ -140,6 +141,50 @@ exports.delete = async function(model, object){
     } catch (err) {
         console.log(err)
         return err
+    }
+}
+
+exports.createTable = async function (model) {
+    let qry = `CREATE TABLE [${model.table}] ( \n`
+    virg = ""
+    qry += `  [rowid] [int] IDENTITY(1,1) NOT NULL,\n`
+    model.fields.forEach((f) => {
+        if(f.type == "integer") {
+            qry += virg + `  [${f.name}] [int] NOT NULL`
+        }
+        else if(f.type == "string") {
+            qry += virg + `  [${f.name}] [nvarchar](${f.format}) NOT NULL`
+        }
+        virg = ',\n'
+    })
+    qry += ') \n'
+    
+    qry += `CREATE NONCLUSTERED INDEX [${model.primaryIndex.name}] ON [${model.table}] ( \n`
+    virg = ""
+    model.primaryIndex.fields.forEach((f) => {
+        qry += virg + `  [${f}] ASC`
+        virg = ',\n'
+    })
+    qry += ') \n'
+
+    model.indexes.forEach((i) => {
+        qry += `CREATE NONCLUSTERED INDEX [${i.name}] ON [${model.table}] ( \n`
+        virg = ""
+        i.fields.forEach((f) => {
+            qry += virg + `  [${f}] ASC`
+            virg = ',\n'
+        })
+        qry += ') \n'
+    })
+    
+    //console.log(qry)
+    try {
+        await pool.request().query(qry)
+        console.log(`Created Table [${model.table}]`)
+        return true
+    }
+    catch(e) {
+        throw e
     }
 }
 
