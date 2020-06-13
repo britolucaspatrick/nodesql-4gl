@@ -41,7 +41,7 @@ async function fnTest() {
 
         let product = await db.findfirst(productModel, "*", "id_product = 2")
         product.product_name = "TESTE"
-        await db.assign(productModel , product)
+        await db.delete(productModel , product)
 
 
         // console.log(product)

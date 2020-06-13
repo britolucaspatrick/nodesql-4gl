@@ -111,7 +111,7 @@ exports.create = async function(model, object){
     try {
         await pool.request().query(`insert into ${model.table} (${campos}) values (${values})`)
     } catch (err) {
-        
+        console.log(err)
     }
 }
 
@@ -131,6 +131,15 @@ exports.assign = async function(model, object){
         await pool.request().query(`update ${model.table} set ${values} where id = ${object["id"]}`)
     } catch (err) {
         console.log(err)
+    }
+}
+
+exports.delete = async function(model, object){
+    try {
+        await pool.request().query(`delete ${model.table} where id = ${object["id"]}`)
+    } catch (err) {
+        console.log(err)
+        return err
     }
 }
 
