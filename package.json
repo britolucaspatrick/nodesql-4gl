@@ -1,0 +1,23 @@
+{
+  "name": "nodesql-4gl",
+  "version": "1.0.0",
+  "description": "A module to provide 4GL function for easy database access",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/britolucaspatrick/nodesql-4gl.git"
+  },
+  "keywords": [],
+  "author": "Patrick Brito & João Almeida",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/britolucaspatrick/nodesql-4gl/issues"
+  },
+  "homepage": "https://github.com/britolucaspatrick/nodesql-4gl#readme",
+  "dependencies": {
+    "mssql": "^6.2.0"
+  }
+}
