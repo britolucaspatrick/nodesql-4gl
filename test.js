@@ -38,11 +38,11 @@ async function fnTest() {
                 idleTimeoutMillis: 30000
             } } 
         )
-
         let product = await db.findfirst(productModel, "*", "id_product = 2")
-        product.id_product = 5
         product.product_name = "TESTE"
-        await db.create(productModel , product)
+        await db.delete(productModel , product)
+
+
         // console.log(product)
         // let product2 = await db.findfirst(productModel, "*")
         // console.log(product2)

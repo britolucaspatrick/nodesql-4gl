@@ -1,37 +1,74 @@
+# nodesql-4gl
+
+A module to provide 4GL function for easy database access
+
+## Installation
+
+    npm i nodesql-4gl
+
+## Quick Example
+
+```javascript
 const mssql = require('mssql')
 let pool
-
-getDescItens = function(list){
-    let stringDesc = ""
-    let virg = ""
-
-    for(var k in list) {
-        stringDesc += virg + list[k] + " desc" 
-        virg = ","
-    }
-
-    return stringDesc
-}
 
 exports.connect = async function(typeDatabase, config) {
     try {
         pool = new mssql.ConnectionPool(config)
         await pool.connect()
-        console.log("db connected")
+        console.log("connected")
     } catch (error) {
-        return error
+        // ... error checks
     }
 }
+```
+## Documentation
 
+### Examples
+
+* [Close connection](#close-connection)
+* [Find first](#find-first)
+* [Find last](#find-last)
+* [Can find](#cad-find)
+* [Foreach](#foreach)
+* [Create](#create)
+* [Assign](#assign)
+* [Delete](#delete)
+
+## Examples
+
+### Config
+
+```javascript
+await db.connect("mssql", 
+    config = {
+        user: '########',
+        password: '########',
+        server: '########',
+        database: '########',
+        pool: {
+            max: 10,
+            min: 0,
+            idleTimeoutMillis: 30000
+        }
+    } 
+)
+```
+
+
+### Close connection
+```javascript
 exports.close = async function(){
     try {
         await pool.close()
-        console.log("db disconnected")
     } catch (error) {
         
     }
 }
+```
 
+### Find first
+```javascript
 exports.findfirst = async function(model, fields, where){
     try{
         let result
@@ -46,7 +83,10 @@ exports.findfirst = async function(model, fields, where){
         return err
     }
 }
+```
 
+### Find last
+```javascript
 exports.findlast = async function(model, fields, where){
     try{
         let result
@@ -61,7 +101,10 @@ exports.findlast = async function(model, fields, where){
         return err
     }
 }
+```
 
+### Can find
+```javascript
 exports.canfind = async function(model, where) {
     try{
         let result
@@ -77,7 +120,10 @@ exports.canfind = async function(model, where) {
         return err
     }
 }
+```
 
+### Foreach
+```javascript
 exports.foreach = async function(model, fields, where){
     try{
         let result
@@ -92,7 +138,10 @@ exports.foreach = async function(model, fields, where){
         return err
     }
 }
+```
 
+### Create
+```javascript
 exports.create = async function(model, object){
 
     let campos = ""
@@ -115,7 +164,10 @@ exports.create = async function(model, object){
         console.log(err)
     }
 }
+```
 
+### Assign
+```javascript
 exports.assign = async function(model, object){
     let values = ""
     let virg = ""
@@ -134,7 +186,10 @@ exports.assign = async function(model, object){
         console.log(err)
     }
 }
+```
 
+### Delete
+```javascript
 exports.delete = async function(model, object){
     try {
         await pool.request().query(`delete ${model.table} where id = ${object["id"]}`)
@@ -143,48 +198,13 @@ exports.delete = async function(model, object){
         return err
     }
 }
+```
 
-exports.createTable = async function (model) {
-    let qry = `CREATE TABLE [${model.table}] ( \n`
-    virg = ""
-    qry += `  [rowid] [int] IDENTITY(1,1) NOT NULL,\n`
-    model.fields.forEach((f) => {
-        if(f.type == "integer") {
-            qry += virg + `  [${f.name}] [int] NOT NULL`
-        }
-        else if(f.type == "string") {
-            qry += virg + `  [${f.name}] [nvarchar](${f.format}) NOT NULL`
-        }
-        virg = ',\n'
-    })
-    qry += ') \n'
-    
-    qry += `CREATE NONCLUSTERED INDEX [${model.primaryIndex.name}] ON [${model.table}] ( \n`
-    virg = ""
-    model.primaryIndex.fields.forEach((f) => {
-        qry += virg + `  [${f}] ASC`
-        virg = ',\n'
-    })
-    qry += ') \n'
+---
+Copyright 2020 Patrick Brito & João Almeida
 
-    model.indexes.forEach((i) => {
-        qry += `CREATE NONCLUSTERED INDEX [${i.name}] ON [${model.table}] ( \n`
-        virg = ""
-        i.fields.forEach((f) => {
-            qry += virg + `  [${f}] ASC`
-            virg = ',\n'
-        })
-        qry += ') \n'
-    })
-    
-    //console.log(qry)
-    try {
-        await pool.request().query(qry)
-        console.log(`Created Table [${model.table}]`)
-        return true
-    }
-    catch(e) {
-        throw e
-    }
-}
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
