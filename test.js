@@ -38,7 +38,6 @@ async function fnTest() {
                 idleTimeoutMillis: 30000
             } } 
         )
-
         let product = await db.findfirst(productModel, "*", "id_product = 2")
         product.product_name = "TESTE"
         await db.delete(productModel , product)
