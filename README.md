@@ -6,26 +6,39 @@ A module to provide 4GL function for easy database access
 
     npm i nodesql-4gl
 
-## Quick Example
+## Models Examples
 
 ```javascript
-const mssql = require('mssql')
-let pool
+const productModel = {
+    "table": "product",
+    "fields": [
+        {"name": "id_product", "type": "integer", "format": ">>>>>>>>>9", "label": "Id produto"},
+        {"name": "product_name", "type": "string", "format": "40", "label": "Nome produto"}
+    ],
+    "primaryIndex": {"name": "idx_key", "fields": ["product_name"]},
+    "indexes":[
+        {"name": "idx_name", "fields": ["product_name"]}
+    ]
+}
 
-exports.connect = async function(typeDatabase, config) {
-    try {
-        pool = new mssql.ConnectionPool(config)
-        await pool.connect()
-        console.log("connected")
-    } catch (error) {
-        // ... error checks
-    }
+const sallesorderModel = {
+    "table": "sallesorder",
+    "fields": [
+        {"name": "id_order", "type": "integer", "format": ">>>>>>>>>9", "label": "Id pedido"},
+        {"name": "id_customer", "type": "string", "format": "40", "label": "Id cliente"},
+        {"name": "cod_order_customer", "type": "string", "format": "40", "label": "Cód pedido cliente"}
+    ],
+    "primaryIndex": {"name": "idx_key", "fields": ["id_customer", "cod_order_customer"]},
+    "indexes":[
+        {"name": "idx_name", "fields": ["id_order"]}
+    ]
 }
 ```
 ## Documentation
 
 ### Examples
 
+* [Open connection](#open-connection)
 * [Close connection](#close-connection)
 * [Find first](#find-first)
 * [Find last](#find-last)
@@ -34,171 +47,87 @@ exports.connect = async function(typeDatabase, config) {
 * [Create](#create)
 * [Assign](#assign)
 * [Delete](#delete)
+* [Create table](#create-table)
 
 ## Examples
 
-### Config
-
+### Open connection
 ```javascript
-await db.connect("mssql", 
+var db = require("nodesql-4gl")
+db.connect("mssql", 
     config = {
-        user: '########',
-        password: '########',
-        server: '########',
-        database: '########',
+        user: '############',
+        password: '############',
+        server: '############',
+        database: '############',
         pool: {
             max: 10,
             min: 0,
             idleTimeoutMillis: 30000
-        }
+        } 
     } 
 )
 ```
 
-
 ### Close connection
 ```javascript
-exports.close = async function(){
-    try {
-        await pool.close()
-    } catch (error) {
-        
-    }
-}
+var db = require("nodesql-4gl")
+db.close()
 ```
 
 ### Find first
 ```javascript
-exports.findfirst = async function(model, fields, where){
-    try{
-        let result
-        if (where){
-            result = await pool.request().query(`select top 1 ${fields} from ${model.table} where ${where} order by ${model.primaryIndex.fields.toString()}`)
-        }
-        else{
-            result = await pool.request().query(`select top 1 ${fields} from ${model.table} order by ${model.primaryIndex.fields.toString()} `)
-        } 
-        return result.recordset[0]
-    }catch(err){
-        return err
-    }
-}
+var db = require("nodesql-4gl")
+let product = await db.findfirst(productModel, "*", "id_product = 2")
 ```
 
 ### Find last
 ```javascript
-exports.findlast = async function(model, fields, where){
-    try{
-        let result
-        if (where){
-            result = await pool.request().query(`select top 1 ${fields} from ${model.table} where ${where} order by ${getDescItens(model.primaryIndex.fields)}`)
-        }
-        else{
-            result = await pool.request().query(`select top 1 ${fields} from ${model.table} order by ${getDescItens(model.primaryIndex.fields)}`)
-        } 
-        return result.recordset[0]
-    }catch(err){
-        return err
-    }
-}
+var db = require("nodesql-4gl")
+let product3 = await db.findlast(sallesorderModel, "*", "id_order = 2")
 ```
 
 ### Can find
 ```javascript
-exports.canfind = async function(model, where) {
-    try{
-        let result
-        if (where){
-            result = await pool.request().query(`select 1 from ${model.table} where ${where}`)
-        }
-        else{
-            result = await pool.request().query(`select 1 from ${model.table}`)
-        } 
-
-        return result.recordset[0][''] == 1
-    }catch(err){
-        return err
-    }
-}
+var db = require("nodesql-4gl")
+let boo = await db.canfind(sallesorderModel, "id_order = 1")
 ```
 
 ### Foreach
 ```javascript
-exports.foreach = async function(model, fields, where){
-    try{
-        let result
-        if (where){
-            result = await pool.request().query(`select ${fields} from ${model.table} where ${where} order by ${model.primaryIndex.fields.toString()}`)
-        }
-        else{
-            result = await pool.request().query(`select ${fields} from ${model.table} order by ${model.primaryIndex.fields.toString()}`)
-        } 
-        return result.recordset
-    }catch(err){
-        return err
-    }
-}
+var db = require("nodesql-4gl")
+let product4 = await db.foreach(sallesorderModel, "*")
 ```
 
 ### Create
 ```javascript
-exports.create = async function(model, object){
-
-    let campos = ""
-    let values = ""
-    let virg = ""
-    
-    for(var x in model.fields){
-        campos += virg + model.fields[x].name
-        if (model.fields[x].type == "string"){
-            values += virg + "'" + object[model.fields[x].name] + "'"
-        }else{
-            values += virg + object[model.fields[x].name]
-        }
-        virg = ","
-    }
-
-    try {
-        await pool.request().query(`insert into ${model.table} (${campos}) values (${values})`)
-    } catch (err) {
-        console.log(err)
-    }
-}
+var db = require("nodesql-4gl")
+let product4 = await db.foreach(sallesorderModel, "*")
+product4.id = null
+db.create(productModel, product4)
 ```
 
 ### Assign
 ```javascript
-exports.assign = async function(model, object){
-    let values = ""
-    let virg = ""
-
-    for(var x in model.fields){
-        if (model.fields[x].type == "string"){
-            values += virg + model.fields[x].name + " = '" + object[model.fields[x].name] + "'"
-        }else{
-            values += virg + model.fields[x].name + " = " + object[model.fields[x].name]
-        }
-        virg = ","
-    }
-    try {
-        await pool.request().query(`update ${model.table} set ${values} where id = ${object["id"]}`)
-    } catch (err) {
-        console.log(err)
-    }
-}
+var db = require("nodesql-4gl")
+let product4 = await db.foreach(sallesorderModel, "*")
+product4.product_name = "New Product name"
+db.assign(productModel, product4)
 ```
 
 ### Delete
 ```javascript
-exports.delete = async function(model, object){
-    try {
-        await pool.request().query(`delete ${model.table} where id = ${object["id"]}`)
-    } catch (err) {
-        console.log(err)
-        return err
-    }
-}
+var db = require("nodesql-4gl")
+let product4 = await db.foreach(sallesorderModel, "*")
+db.delete(productModel, product4)
 ```
+
+### Create table
+```javascript
+let result = await db.createTable(productModel)
+await db.close()
+```
+
 
 ---
 Copyright 2020 Patrick Brito & João Almeida
