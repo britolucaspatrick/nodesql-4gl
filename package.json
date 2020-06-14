@@ -10,7 +10,12 @@
     "type": "git",
     "url": "git+https://github.com/britolucaspatrick/nodesql-4gl.git"
   },
-  "keywords": [],
+  "keywords": [
+    "4gl",
+    "nodesql",
+    "mit",
+    "async"
+  ],
   "author": "Patrick Brito & João Almeida",
   "license": "MIT",
   "bugs": {
