@@ -155,6 +155,29 @@ exports.createTable = async function (model) {
         else if(f.type == "string") {
             qry += virg + `  [${f.name}] [nvarchar](${f.format}) NOT NULL`
         }
+        else if(f.type == "bit") {
+            qry += virg + `  [${f.name}] [bit] NULL`
+        }
+        else if(f.type == "char") {
+            qry += virg + `  [${f.name}] [char](${f.format}) NULL`
+        }
+        else if(f.type == "date") {
+            qry += virg + `  [${f.name}] [date] NULL`
+        }
+        else if(f.type == "datetime") {
+            qry += virg + `  [${f.name}] [datetime] NULL`
+        }
+        else if(f.type == "decimal") {
+            qry += virg + `  [${f.name}] [decimal](${f.format}) NULL`
+        }
+        else if(f.type == "float") {
+            qry += virg + `  [${f.name}] [float] NULL`
+        }
+        else if(f.type == "timestamp") {
+            qry += virg + `  [${f.name}] [timestamp] NULL`
+        }
+
+
         virg = ',\n'
     })
     qry += ') \n'
