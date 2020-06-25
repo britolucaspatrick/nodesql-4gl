@@ -186,7 +186,7 @@ exports.assign = async function(model, object){
 
 exports.delete = async function(model, object){
     try {
-        await pool.request().query(`delete ${model.table} where id = ${object["id"]}`)
+        await pool.request().query(`delete ${model.table} where rowid = ${object["rowid"]}`)
     } catch (err) {
         console.log(err)
         return err
