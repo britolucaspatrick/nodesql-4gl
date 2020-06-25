@@ -13,6 +13,27 @@ getDescItens = function(list){
     return stringDesc
 }
 
+createWhere = function(model, result, operador){
+    let string = ""
+
+    model.primaryIndex.fields.foreach(r => {
+        //varrer o model, comparando o nome r com os fields do model
+        //para saber o tipo do campo
+        //se irá colocar aspas ou não
+        model.fields.foreach(y => {
+            if (y.name == r){
+                if (y.type == 'string'){
+                    string += " " + r + " " + operador + " " + "'" + result[r] + "' "
+                }else{
+                    string += " " + r + " " + operador + " " + result[r]
+                }
+            }
+        })
+    })
+
+    return string
+}
+
 exports.connect = async function(typeDatabase, config) {
     try {
         pool = new mssql.ConnectionPool(config)
@@ -56,6 +77,34 @@ exports.findlast = async function(model, fields, where){
         else{
             result = await pool.request().query(`select top 1 ${fields} from ${model.table} order by ${getDescItens(model.primaryIndex.fields)}`)
         } 
+        return result.recordset[0]
+    }catch(err){
+        return err
+    }
+}
+
+//Buscar o registro anterior ao rowid informado
+exports.findprev =  async function(model, fields, rowid){
+    try{
+        let result
+        result = findfirst(model , `${model.primaryIndex.fields.toString()}` , `rowid = ${rowid}`)
+
+        result = await pool.request().query(`select top 2 from ${model.table} where ${createWhere(model, result, "<=")} order by ${getDescItens(model.primaryIndex.fields)}`)
+
+        return result.recordset[0]
+    }catch(err){
+        return err
+    }
+}
+
+//Buscar o registro depois do rowid informado
+exports.findnext =  async function(model, fields, rowid){
+    try{
+        let result
+        result = findfirst(model , `${model.primaryIndex.fields.toString()}` , `rowid = ${rowid}`)
+
+        result = await pool.request().query(`select top 2 from ${model.table} where ${createWhere(model, result, ">=")} order by ${model.primaryIndex.fields.toString()}`)
+
         return result.recordset[0]
     }catch(err){
         return err
