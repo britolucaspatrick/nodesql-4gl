@@ -1,6 +1,6 @@
 {
   "name": "nodesql-4gl",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "A module to provide 4GL function for easy database access",
   "main": "index.js",
   "scripts": {
