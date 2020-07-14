@@ -1,37 +1,51 @@
 const mssql = require('mssql')
 let pool
 
-getDescItens = function(list){
-    let stringDesc = ""
-    let virg = ""
+// getDescItens = function(list){
+//     let stringDesc = ""
+//     let virg = ""
 
-    for(var k in list) {
-        stringDesc += virg + list[k] + " desc" 
-        virg = ","
-    }
+//     for(var k in list) {
+//         stringDesc += virg + list[k] + " desc" 
+//         virg = ","
+//     }
 
-    return stringDesc
-}
+//     return stringDesc
+// }
 
-createWhere = function(model, result, operador){
-    let string = ""
+// createWhere = function(model, result, operador){
+//     let string = ""
 
-    model.primaryIndex.fields.foreach(r => {
-        //varrer o model, comparando o nome r com os fields do model
-        //para saber o tipo do campo
-        //se irá colocar aspas ou não
-        model.fields.foreach(y => {
-            if (y.name == r){
-                if (y.type == 'string'){
-                    string += " " + r + " " + operador + " " + "'" + result[r] + "' "
-                }else{
-                    string += " " + r + " " + operador + " " + result[r]
-                }
+//     model.primaryIndex.fields.foreach(r => {
+//         //varrer o model, comparando o nome r com os fields do model
+//         //para saber o tipo do campo
+//         //se irá colocar aspas ou não
+//         model.fields.foreach(y => {
+//             if (y.name == r){
+//                 if (y.type == 'string'){
+//                     string += " " + r + " " + operador + " " + "'" + result[r] + "' "
+//                 }else{
+//                     string += " " + r + " " + operador + " " + result[r]
+//                 }
+//             }
+//         })
+//     })
+
+//     return string
+// }
+
+//Validar se nome dos campos na list2 estão igual a list1
+isEquals = function(list1, list2){
+    let count
+    list1.foreach(r => {
+        list2.foreach(y => {
+            if (r.name == y.name){
+                count++;
             }
         })
     })
 
-    return string
+    return count == list1.lenght
 }
 
 exports.connect = async function(typeDatabase, config) {
@@ -53,29 +67,31 @@ exports.close = async function(){
     }
 }
 
+//Buscar o primeiro registro
 exports.findfirst = async function(model, fields, where){
     try{
         let result
         if (where){
-            result = await pool.request().query(`select top 1 ${fields} from ${model.table} where ${where} order by ${model.primaryIndex.fields.toString()}`)
+            result = await pool.request().query(`select top 1 ${fields} from ${model.table} where ${where} order by ${model._descItens}`)
         }
         else{
-            result = await pool.request().query(`select top 1 ${fields} from ${model.table} order by ${model.primaryIndex.fields.toString()} `)
-        } 
+            result = await pool.request().query(`select top 1 ${fields} from ${model.table} order by ${model._descItens} `)
+        }
         return result.recordset[0]
     }catch(err){
         return err
     }
 }
 
+//Buscar o ultimo registro
 exports.findlast = async function(model, fields, where){
     try{
         let result
         if (where){
-            result = await pool.request().query(`select top 1 ${fields} from ${model.table} where ${where} order by ${getDescItens(model.primaryIndex.fields)}`)
+            result = await pool.request().query(`select top 1 ${fields} from ${model.table} where ${where} order by ${model._descItens}`)
         }
         else{
-            result = await pool.request().query(`select top 1 ${fields} from ${model.table} order by ${getDescItens(model.primaryIndex.fields)}`)
+            result = await pool.request().query(`select top 1 ${fields} from ${model.table} order by ${model._descItens}`)
         } 
         return result.recordset[0]
     }catch(err){
@@ -88,9 +104,8 @@ exports.findprev =  async function(model, fields, rowid){
     try{
         let result
         result = findfirst(model , `${model.primaryIndex.fields.toString()}` , `rowid = ${rowid}`)
-
-        result = await pool.request().query(`select top 2 from ${model.table} where ${createWhere(model, result, "<=")} order by ${getDescItens(model.primaryIndex.fields)}`)
-
+        
+        result = await pool.request().query(`select top 2 from ${model.table} where ${createWhere(model, result, "<=")} order by ${model._descItens}`)
         return result.recordset[0]
     }catch(err){
         return err
@@ -102,15 +117,16 @@ exports.findnext =  async function(model, fields, rowid){
     try{
         let result
         result = findfirst(model , `${model.primaryIndex.fields.toString()}` , `rowid = ${rowid}`)
-
+        
         result = await pool.request().query(`select top 2 from ${model.table} where ${createWhere(model, result, ">=")} order by ${model.primaryIndex.fields.toString()}`)
-
+        
         return result.recordset[0]
     }catch(err){
         return err
     }
 }
 
+//Validar[bool] se objeto existe
 exports.canfind = async function(model, where) {
     try{
         let result
@@ -119,9 +135,28 @@ exports.canfind = async function(model, where) {
         }
         else{
             result = await pool.request().query(`select 1 from ${model.table}`)
-        } 
-
+        }
+        
         return result.recordset[0][''] == 1
+    }catch(err){
+        return err
+    }
+}
+
+//Buscar um registro por lista de keys
+exports.gotokey = async function(model, fields, keys){
+    try{
+
+        //verificar se keys recebidas então de acordo com as primary key do model
+        if (isEquals(model.primaryIndex.fields, keys)){
+            let result
+            //TODO: Validar como deve ser obtido o where, através do modelo, solicitado ao João
+            result = await pool.request().query(`select ${fields} from ${model.table} where ${where}`)
+                
+            return result.recordset[0]
+        }else{
+            throw new Exception('Keys diferentes')
+        }
     }catch(err){
         return err
     }
@@ -143,7 +178,7 @@ exports.foreach = async function(model, fields, where){
 }
 
 exports.create = async function(model, object){
-
+    
     let campos = ""
     let values = ""
     let virg = ""
@@ -157,7 +192,7 @@ exports.create = async function(model, object){
         }
         virg = ","
     }
-
+    
     try {
         await pool.request().query(`insert into ${model.table} (${campos}) values (${values})`)
     } catch (err) {
@@ -168,7 +203,7 @@ exports.create = async function(model, object){
 exports.assign = async function(model, object){
     let values = ""
     let virg = ""
-
+    
     for(var x in model.fields){
         if (model.fields[x].type == "string"){
             values += virg + model.fields[x].name + " = '" + object[model.fields[x].name] + "'"
@@ -225,8 +260,8 @@ exports.createTable = async function (model) {
         else if(f.type == "timestamp") {
             qry += virg + `  [${f.name}] [timestamp] NULL`
         }
-
-
+        
+        
         virg = ',\n'
     })
     qry += ') \n'
@@ -238,7 +273,7 @@ exports.createTable = async function (model) {
         virg = ',\n'
     })
     qry += ') \n'
-
+    
     model.indexes.forEach((i) => {
         qry += `CREATE NONCLUSTERED INDEX [${i.name}] ON [${model.table}] ( \n`
         virg = ""
@@ -249,7 +284,6 @@ exports.createTable = async function (model) {
         qry += ') \n'
     })
     
-    //console.log(qry)
     try {
         await pool.request().query(qry)
         console.log(`Created Table [${model.table}]`)

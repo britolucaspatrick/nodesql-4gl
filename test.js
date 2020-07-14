@@ -1,29 +1,5 @@
 const db = require("./index")
-
-const productModel = {
-    "table": "product",
-    "fields": [
-        {"name": "id_product", "type": "integer", "format": ">>>>>>>>>9", "label": "Id produto"},
-        {"name": "product_name", "type": "string", "format": "40", "label": "Nome produto"}
-    ],
-    "primaryIndex": {"name": "idx_key", "fields": ["product_name"]},
-    "indexes":[
-        {"name": "idx_name", "fields": ["product_name"]}
-    ]
-}
-
-const sallesorderModel = {
-    "table": "sallesorder",
-    "fields": [
-        {"name": "id_order", "type": "integer", "format": ">>>>>>>>>9", "label": "Id pedido"},
-        {"name": "id_customer", "type": "string", "format": "40", "label": "Id cliente"},
-        {"name": "cod_order_customer", "type": "string", "format": "40", "label": "Cód pedido cliente"}
-    ],
-    "primaryIndex": {"name": "idx_key", "fields": ["id_customer", "cod_order_customer"]},
-    "indexes":[
-        {"name": "idx_name", "fields": ["id_order"]}
-    ]
-}
+const productModel = require("../model/productModel")
 
 async function fnTest() {
     try {
